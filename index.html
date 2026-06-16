@@ -1,582 +1,210 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DemonQ — چت‌روم</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0c0c10;
-    --sidebar: #111118;
-    --surface: #16161f;
-    --surface2: #1e1e2a;
-    --border: rgba(255,255,255,0.06);
-    --accent: #7c3aed;
-    --accent2: #a855f7;
-    --accent-glow: rgba(124,58,237,0.25);
-    --text: #e8e8f0;
-    --muted: #6b6b80;
-    --danger: #ef4444;
-    --online: #22c55e;
-    --font: 'Vazirmatn', Tahoma, sans-serif;
-  }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--font); font-size: 14px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEMON TIME | محاسبه‌گر سرعت</title>
+    <style>
+        :root {
+            --neon-green: #00ff41;
+            --dark-green: #003b00;
+            --deep-black: #0a0a0a;
+            --soft-black: #1a1a1a;
+        }
 
-  /* OVERLAY */
-  #overlay {
-    position: fixed; inset: 0; z-index: 1000;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
-    display: flex; align-items: center; justify-content: center;
-  }
-  .modal {
-    background: var(--surface);
-    border: 1px solid rgba(124,58,237,0.4);
-    border-radius: 20px;
-    padding: 40px 36px;
-    width: min(420px, 92vw);
-    text-align: center;
-    box-shadow: 0 0 60px rgba(124,58,237,0.2);
-    animation: popIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
-  }
-  @keyframes popIn { from { opacity:0; transform: scale(0.85) translateY(20px); } to { opacity:1; transform: scale(1) translateY(0); } }
-  .modal-logo { font-size: 42px; font-weight: 700; color: var(--accent2); letter-spacing: -1px; margin-bottom: 6px; }
-  .modal-logo span { color: var(--muted); font-weight: 300; }
-  .modal-sub { color: var(--muted); font-size: 13px; margin-bottom: 30px; }
-  .modal input {
-    width: 100%; background: var(--bg); border: 1px solid var(--border);
-    border-radius: 10px; padding: 12px 16px; color: var(--text);
-    font-family: var(--font); font-size: 15px; text-align: right;
-    transition: border 0.2s; outline: none; margin-bottom: 14px;
-  }
-  .modal input:focus { border-color: var(--accent); }
-  .modal input::placeholder { color: var(--muted); }
-  .btn-primary {
-    width: 100%; padding: 13px; background: var(--accent);
-    border: none; border-radius: 10px; color: #fff; font-size: 15px;
-    font-family: var(--font); font-weight: 600; cursor: pointer;
-    transition: background 0.2s, transform 0.1s;
-  }
-  .btn-primary:hover { background: var(--accent2); }
-  .btn-primary:active { transform: scale(0.98); }
-  .modal-hint { color: var(--muted); font-size: 12px; margin-top: 14px; }
+        body {
+            background-color: var(--deep-black);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
 
-  /* LAYOUT */
-  .app { display: flex; height: 100%; }
+        /* پس‌زمینه متحرک ظریف */
+        body::before {
+            content: " ";
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+        }
 
-  /* SIDEBAR */
-  .sidebar {
-    width: 240px; min-width: 240px; background: var(--sidebar);
-    border-left: 1px solid var(--border);
-    display: flex; flex-direction: column; overflow: hidden;
-    transition: transform 0.25s;
-  }
-  .sidebar-header {
-    padding: 18px 16px 14px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .sidebar-logo { font-size: 20px; font-weight: 700; color: var(--accent2); letter-spacing: -0.5px; }
-  .sidebar-logo span { color: var(--muted); font-weight: 300; }
-  .online-badge {
-    margin-right: auto; background: rgba(34,197,94,0.12);
-    color: var(--online); font-size: 11px; padding: 3px 8px;
-    border-radius: 20px; border: 1px solid rgba(34,197,94,0.25);
-  }
-  .sidebar-section { padding: 16px 16px 8px; color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-  .channel-list { flex: 1; overflow-y: auto; padding: 4px 8px; }
-  .channel-list::-webkit-scrollbar { width: 3px; }
-  .channel-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-  .channel-item {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 10px; border-radius: 8px; cursor: pointer;
-    color: var(--muted); transition: all 0.15s; margin-bottom: 2px;
-    font-size: 14px;
-  }
-  .channel-item:hover { background: var(--surface2); color: var(--text); }
-  .channel-item.active { background: rgba(124,58,237,0.18); color: var(--accent2); }
-  .channel-icon { font-size: 16px; opacity: 0.7; }
-  .channel-item.active .channel-icon { opacity: 1; }
-  .channel-badge {
-    margin-right: auto; background: var(--accent);
-    color: #fff; font-size: 10px; min-width: 18px; height: 18px;
-    border-radius: 9px; display: flex; align-items: center; justify-content: center;
-    padding: 0 5px;
-  }
-  .sidebar-user {
-    padding: 12px 14px; border-top: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-    background: rgba(0,0,0,0.2);
-  }
-  .avatar {
-    width: 32px; height: 32px; border-radius: 50%;
-    background: var(--accent); display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0;
-  }
-  .user-info { min-width: 0; }
-  .user-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .user-status { font-size: 11px; color: var(--online); }
+        .card {
+            background-color: var(--soft-black);
+            border: 2px solid var(--dark-green);
+            border-radius: 15px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            text-align: center;
+        }
 
-  /* MAIN CHAT */
-  .chat-area { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .chat-header {
-    padding: 0 20px; height: 56px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 12px;
-    background: var(--bg);
-    flex-shrink: 0;
-  }
-  .chat-header-icon { font-size: 20px; color: var(--accent2); }
-  .chat-header-title { font-size: 16px; font-weight: 600; }
-  .chat-header-desc { font-size: 12px; color: var(--muted); margin-right: 4px; }
-  .chat-header-sep { color: var(--border); }
-  .online-count { font-size: 12px; color: var(--muted); margin-right: auto; display: flex; align-items: center; gap: 5px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--online); display: inline-block; }
-  .mobile-menu-btn {
-    display: none; background: none; border: none;
-    color: var(--muted); font-size: 22px; cursor: pointer; padding: 4px;
-  }
+        h1 {
+            color: var(--neon-green);
+            letter-spacing: 5px;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 10px var(--dark-green);
+            font-size: 2rem;
+        }
 
-  /* MESSAGES */
-  .messages {
-    flex: 1; overflow-y: auto; padding: 20px 20px 10px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .messages::-webkit-scrollbar { width: 4px; }
-  .messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-  .msg-group { margin-bottom: 14px; }
-  .msg-header { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
-  .msg-avatar {
-    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; font-weight: 700; color: #fff;
-  }
-  .msg-username { font-size: 14px; font-weight: 600; }
-  .msg-username.is-me { color: var(--accent2); }
-  .msg-time { font-size: 11px; color: var(--muted); }
-  .msg-bubble {
-    margin-right: 46px; background: var(--surface);
-    padding: 10px 14px; border-radius: 4px 14px 14px 14px;
-    font-size: 14px; line-height: 1.65; color: var(--text);
-    max-width: 680px; word-break: break-word;
-    border: 1px solid var(--border);
-    animation: msgIn 0.2s ease;
-  }
-  .msg-bubble.is-me {
-    background: rgba(124,58,237,0.15);
-    border-color: rgba(124,58,237,0.2);
-    border-radius: 14px 4px 14px 14px;
-  }
-  @keyframes msgIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
+        .input-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            direction: ltr; /* برای نمایش درست ساعت:دقیقه:ثانیه */
+            margin-bottom: 1.5rem;
+        }
 
-  .system-msg {
-    text-align: center; color: var(--muted); font-size: 12px;
-    padding: 4px 0; display: flex; align-items: center; gap: 8px;
-    margin: 8px 0;
-  }
-  .system-msg::before, .system-msg::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+        .time-input {
+            width: 60px;
+            height: 50px;
+            background: #000;
+            border: 1px solid var(--dark-green);
+            color: var(--neon-green);
+            font-size: 1.2rem;
+            text-align: center;
+            border-radius: 8px;
+            outline: none;
+        }
 
-  .typing-indicator {
-    display: none; padding: 4px 20px 10px;
-    color: var(--muted); font-size: 12px; font-style: italic;
-    min-height: 24px;
-  }
-  .typing-dots span {
-    display: inline-block; width: 5px; height: 5px; border-radius: 50%;
-    background: var(--muted); margin: 0 1px;
-    animation: bounce 1.2s infinite;
-  }
-  .typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-  .typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes bounce { 0%,60%,100% { transform: translateY(0); } 30% { transform: translateY(-5px); } }
+        .time-input:focus {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 5px var(--neon-green);
+        }
 
-  /* INPUT */
-  .input-area {
-    padding: 12px 20px 16px;
-    background: var(--bg);
-    border-top: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  .input-box {
-    display: flex; align-items: flex-end; gap: 10px;
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: 12px; padding: 10px 14px;
-    transition: border 0.2s;
-  }
-  .input-box:focus-within { border-color: rgba(124,58,237,0.5); }
-  #msg-input {
-    flex: 1; background: none; border: none; outline: none;
-    color: var(--text); font-family: var(--font); font-size: 14px;
-    resize: none; max-height: 120px; line-height: 1.6;
-    scrollbar-width: none;
-  }
-  #msg-input::placeholder { color: var(--muted); }
-  .send-btn {
-    width: 36px; height: 36px; border-radius: 8px; background: var(--accent);
-    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s; flex-shrink: 0;
-  }
-  .send-btn:hover { background: var(--accent2); transform: scale(1.05); }
-  .send-btn:active { transform: scale(0.95); }
-  .send-btn svg { width: 18px; height: 18px; fill: #fff; transform: rotate(180deg); }
-  .input-hint { text-align: center; color: var(--muted); font-size: 11px; margin-top: 8px; }
+        .separator {
+            color: var(--neon-green);
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
 
-  /* MOBILE */
-  .sidebar-overlay {
-    display: none; position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.6);
-  }
-  @media (max-width: 680px) {
-    .sidebar { position: fixed; right: 0; top: 0; bottom: 0; z-index: 200; transform: translateX(100%); }
-    .sidebar.open { transform: translateX(0); }
-    .mobile-menu-btn { display: flex; }
-    .sidebar-overlay.active { display: block; }
-    .chat-header-desc { display: none; }
-    .chat-header-sep { display: none; }
-    .messages { padding: 12px 12px 8px; }
-    .input-area { padding: 10px 12px 14px; }
-  }
-</style>
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            background: #000;
+            color: var(--neon-green);
+            border: 1px solid var(--dark-green);
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            outline: none;
+            margin-bottom: 2rem;
+        }
+
+        .result-area {
+            border-top: 1px solid var(--dark-green);
+            padding-top: 1.5rem;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        #finalTime {
+            font-size: 2.5rem;
+            color: var(--neon-green);
+            font-weight: bold;
+            text-shadow: 0 0 15px rgba(0, 255, 65, 0.5);
+            margin-top: 0.5rem;
+        }
+    </style>
 </head>
 <body>
 
-<!-- LOGIN OVERLAY -->
-<div id="overlay">
-  <div class="modal">
-    <div class="modal-logo">Demon<span>Q</span></div>
-    <p class="modal-sub">وارد چت‌روم آزاد شو</p>
-    <input type="text" id="name-input" placeholder="نام مستعار خودت رو بنویس..." maxlength="20" autocomplete="off" />
-    <button class="btn-primary" onclick="enterChat()">ورود به چت‌روم ←</button>
-    <p class="modal-hint">بدون ثبت‌نام — فقط اسم بذار و بپر تو!</p>
-  </div>
+<div class="card">
+    <h1>DEMON TIME</h1>
+    
+    <label>زمان اصلی ویدیو</label>
+    <div class="input-group">
+        <input type="number" id="hh" class="time-input" placeholder="00" min="0" max="99">
+        <span class="separator">:</span>
+        <input type="number" id="mm" class="time-input" placeholder="00" min="0" max="59">
+        <span class="separator">:</span>
+        <input type="number" id="ss" class="time-input" placeholder="00" min="0" max="59">
+    </div>
+
+    <label>سرعت را انتخاب کنید</label>
+    <select id="speedRange">
+        <!-- سرعت‌ها از 1 تا 3.5 به صورت خودکار توسط JS ساخته می‌شوند -->
+    </select>
+
+    <div class="result-area">
+        <div class="result-label">زمان تماشا پس از اعمال سرعت</div>
+        <div id="finalTime">00:00:00</div>
+    </div>
 </div>
-
-<div class="sidebar-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
-
-<div class="app">
-  <!-- SIDEBAR -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">Demon<span>Q</span></div>
-      <div class="online-count">
-        <span class="dot"></span>
-        <span id="online-count">0</span> آنلاین
-      </div>
-    </div>
-
-    <div class="sidebar-section">کانال‌ها</div>
-    <div class="channel-list" id="channel-list">
-      <div class="channel-item active" onclick="switchChannel('general','💬','عمومی','گپ آزاد برای همه')" data-ch="general">
-        <span class="channel-icon">💬</span> عمومی
-      </div>
-      <div class="channel-item" onclick="switchChannel('gaming','🎮','گیمینگ','بحث بازی و گیمینگ')" data-ch="gaming">
-        <span class="channel-icon">🎮</span> گیمینگ
-      </div>
-      <div class="channel-item" onclick="switchChannel('music','🎵','موزیک','موزیک و آهنگ')" data-ch="music">
-        <span class="channel-icon">🎵</span> موزیک
-      </div>
-      <div class="channel-item" onclick="switchChannel('tech','💻','تکنولوژی','دنیای تکنو و IT')" data-ch="tech">
-        <span class="channel-icon">💻</span> تکنولوژی
-      </div>
-      <div class="channel-item" onclick="switchChannel('random','🎲','رندوم','هر چیزی!')" data-ch="random">
-        <span class="channel-icon">🎲</span> رندوم
-      </div>
-    </div>
-
-    <div class="sidebar-user" id="sidebar-user" style="display:none">
-      <div class="avatar" id="user-avatar">?</div>
-      <div class="user-info">
-        <div class="user-name" id="user-name-display">—</div>
-        <div class="user-status">● آنلاین</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CHAT -->
-  <div class="chat-area">
-    <div class="chat-header">
-      <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
-      <span class="chat-header-icon" id="ch-icon">💬</span>
-      <span class="chat-header-title" id="ch-title">عمومی</span>
-      <span class="chat-header-sep">—</span>
-      <span class="chat-header-desc" id="ch-desc">گپ آزاد برای همه</span>
-      <span class="online-count" style="margin-right:auto;font-size:12px">
-        <span class="dot"></span> <span id="online-count2">0</span> نفر آنلاین
-      </span>
-    </div>
-
-    <div class="messages" id="messages">
-      <div class="system-msg">به DemonQ خوش اومدی ✦</div>
-    </div>
-
-    <div class="typing-indicator" id="typing-indicator"></div>
-
-    <div class="input-area">
-      <div class="input-box">
-        <textarea id="msg-input" placeholder="پیام بنویس..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this);handleTyping()"></textarea>
-        <button class="send-btn" onclick="sendMessage()">
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 12L21 3L12 22L10 14L2 12Z"/></svg>
-        </button>
-      </div>
-      <div class="input-hint">Enter برای ارسال · Shift+Enter برای خط جدید</div>
-    </div>
-  </div>
-</div>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-// ─── FIREBASE CONFIG ───────────────────────────────────────────────────────
-// !! مهم: این config رو با Firebase خودت عوض کن !!
-// آموزش: https://console.firebase.google.com → ساخت پروژه → Realtime Database → Rules = public
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+    const speedSelect = document.getElementById('speedRange');
+    const hhIn = document.getElementById('hh');
+    const mmIn = document.getElementById('mm');
+    const ssIn = document.getElementById('ss');
+    const finalDisplay = document.getElementById('finalTime');
 
-// ─── INIT ──────────────────────────────────────────────────────────────────
-let app, db;
-let currentUser = null;
-let currentChannel = 'general';
-let messagesRef = null;
-let presenceRef = null;
-let typingRef = null;
-let typingTimeout = null;
-let unsubMessages = null;
-let renderedIds = new Set();
-
-const COLORS = ['#7c3aed','#0ea5e9','#10b981','#f59e0b','#ef4444','#ec4899','#8b5cf6','#06b6d4','#84cc16'];
-function colorFor(name) {
-  let h = 0; for (let c of name) h = (h * 31 + c.charCodeAt(0)) % COLORS.length;
-  return COLORS[Math.abs(h)];
-}
-function initials(name) { return name.slice(0,2).toUpperCase(); }
-function timeStr() {
-  const d = new Date();
-  return d.getHours().toString().padStart(2,'0') + ':' + d.getMinutes().toString().padStart(2,'0');
-}
-
-// ─── ENTER CHAT ────────────────────────────────────────────────────────────
-function enterChat() {
-  const name = document.getElementById('name-input').value.trim();
-  if (!name || name.length < 2) {
-    document.getElementById('name-input').style.borderColor = '#ef4444';
-    document.getElementById('name-input').placeholder = 'حداقل ۲ حرف بنویس!';
-    return;
-  }
-  currentUser = { name, color: colorFor(name), id: Date.now().toString(36) + Math.random().toString(36).slice(2) };
-
-  try {
-    app = firebase.initializeApp(firebaseConfig);
-    db = firebase.database();
-  } catch(e) {
-    // fallback: local demo mode
-    startDemoMode();
-    return;
-  }
-
-  document.getElementById('overlay').style.display = 'none';
-  document.getElementById('sidebar-user').style.display = 'flex';
-  document.getElementById('user-avatar').textContent = initials(name);
-  document.getElementById('user-avatar').style.background = currentUser.color;
-  document.getElementById('user-name-display').textContent = name;
-
-  setupPresence();
-  loadChannel('general');
-}
-
-// ─── PRESENCE ──────────────────────────────────────────────────────────────
-function setupPresence() {
-  presenceRef = db.ref('presence/' + currentUser.id);
-  presenceRef.set({ name: currentUser.name, ts: Date.now() });
-  presenceRef.onDisconnect().remove();
-
-  db.ref('presence').on('value', snap => {
-    const count = snap.numChildren();
-    document.getElementById('online-count').textContent = count;
-    document.getElementById('online-count2').textContent = count;
-  });
-}
-
-// ─── CHANNEL ───────────────────────────────────────────────────────────────
-function switchChannel(ch, icon, title, desc) {
-  document.querySelectorAll('.channel-item').forEach(el => el.classList.toggle('active', el.dataset.ch === ch));
-  document.getElementById('ch-icon').textContent = icon;
-  document.getElementById('ch-title').textContent = title;
-  document.getElementById('ch-desc').textContent = desc;
-  loadChannel(ch);
-  if (window.innerWidth <= 680) toggleSidebar();
-}
-
-function loadChannel(ch) {
-  if (unsubMessages) unsubMessages();
-  if (typingRef) typingRef.off();
-  currentChannel = ch;
-  renderedIds = new Set();
-  document.getElementById('messages').innerHTML = '<div class="system-msg">به کانال ' + ch + ' خوش اومدی ✦</div>';
-
-  // Listen messages
-  const ref = db.ref('messages/' + ch);
-  // Show only last 80 messages
-  const query = ref.orderByChild('ts').limitToLast(80);
-  const handler = query.on('value', snap => {
-    const msgs = [];
-    snap.forEach(c => { msgs.push({ id: c.key, ...c.val() }); });
-    renderMessages(msgs);
-  });
-  unsubMessages = () => query.off('value', handler);
-
-  // Typing
-  typingRef = db.ref('typing/' + ch);
-  typingRef.on('value', snap => {
-    const typers = [];
-    snap.forEach(c => { if (c.val().name !== currentUser.name) typers.push(c.val().name); });
-    const el = document.getElementById('typing-indicator');
-    if (typers.length > 0) {
-      el.style.display = 'block';
-      el.innerHTML = typers.join('، ') + ' داره تایپ می‌کنه... <span class="typing-dots"><span></span><span></span><span></span></span>';
-    } else {
-      el.style.display = 'none';
+    // ساخت لیست سرعت‌ها از 1x تا 3.5x
+    for (let i = 1; i <= 3.5; i += 0.25) {
+        let opt = document.createElement('option');
+        opt.value = i;
+        opt.innerHTML = i + 'x Speed';
+        if(i === 1) opt.selected = true;
+        speedSelect.appendChild(opt);
     }
-  });
-}
 
-// ─── RENDER ────────────────────────────────────────────────────────────────
-function renderMessages(msgs) {
-  const container = document.getElementById('messages');
-  let lastUser = null;
-  container.innerHTML = '<div class="system-msg">به کانال ' + currentChannel + ' خوش اومدی ✦</div>';
-  msgs.forEach(msg => {
-    if (!msg.text || !msg.name) return;
-    const isMe = msg.uid === currentUser.id;
-    const newGroup = lastUser !== msg.uid;
-    lastUser = msg.uid;
-    if (newGroup) {
-      const grp = document.createElement('div');
-      grp.className = 'msg-group';
-      grp.innerHTML = `
-        <div class="msg-header">
-          <div class="msg-avatar" style="background:${msg.color || colorFor(msg.name)}">${initials(msg.name)}</div>
-          <span class="msg-username${isMe?' is-me':''}">${escHtml(msg.name)}</span>
-          <span class="msg-time">${msg.time || ''}</span>
-        </div>
-        <div class="msg-bubble${isMe?' is-me':''}">${escHtml(msg.text)}</div>
-      `;
-      container.appendChild(grp);
-    } else {
-      const last = container.querySelector('.msg-group:last-child .msg-bubble');
-      if (last) {
-        const bub = document.createElement('div');
-        bub.className = 'msg-bubble' + (isMe ? ' is-me' : '');
-        bub.textContent = msg.text;
-        last.parentNode.insertBefore(bub, last.nextSibling);
-      }
+    // جابجایی خودکار بین باکس‌ها وقتی کاربر عدد وارد می‌کند
+    const inputs = [hhIn, mmIn, ssIn];
+    inputs.forEach((input, index) => {
+        input.addEventListener('input', () => {
+            if (input.value.length >= 2 && index < 2) {
+                inputs[index + 1].focus();
+            }
+            calculate();
+        });
+    });
+
+    speedSelect.addEventListener('change', calculate);
+
+    function calculate() {
+        const h = parseInt(hhIn.value) || 0;
+        const m = parseInt(mmIn.value) || 0;
+        const s = parseInt(ssIn.value) || 0;
+        const speed = parseFloat(speedSelect.value);
+
+        const totalSeconds = (h * 3600) + (m * 60) + s;
+        
+        if (totalSeconds === 0) {
+            finalDisplay.innerText = "00:00:00";
+            return;
+        }
+
+        const resultSeconds = Math.floor(totalSeconds / speed);
+
+        const resH = Math.floor(resultSeconds / 3600);
+        const resM = Math.floor((resultSeconds % 3600) / 60);
+        const resS = resultSeconds % 60;
+
+        finalDisplay.innerText = 
+            String(resH).padStart(2, '0') + ":" +
+            String(resM).padStart(2, '0') + ":" +
+            String(resS).padStart(2, '0');
     }
-  });
-  container.scrollTop = container.scrollHeight;
-}
-
-function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// ─── SEND ──────────────────────────────────────────────────────────────────
-function sendMessage() {
-  const input = document.getElementById('msg-input');
-  const text = input.value.trim();
-  if (!text || !currentUser) return;
-  input.value = ''; autoResize(input);
-
-  db.ref('messages/' + currentChannel).push({
-    text, name: currentUser.name, uid: currentUser.id,
-    color: currentUser.color, ts: Date.now(), time: timeStr()
-  });
-  clearTyping();
-}
-
-function handleKey(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-}
-
-function autoResize(el) {
-  el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
-}
-
-// ─── TYPING ────────────────────────────────────────────────────────────────
-function handleTyping() {
-  if (!db || !currentUser) return;
-  db.ref('typing/' + currentChannel + '/' + currentUser.id).set({ name: currentUser.name, ts: Date.now() });
-  clearTimeout(typingTimeout);
-  typingTimeout = setTimeout(clearTyping, 2500);
-}
-function clearTyping() {
-  if (!db || !currentUser) return;
-  db.ref('typing/' + currentChannel + '/' + currentUser.id).remove();
-}
-
-// ─── SIDEBAR MOBILE ────────────────────────────────────────────────────────
-function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sb-overlay').classList.toggle('active');
-}
-
-// ─── DEMO MODE (no Firebase) ───────────────────────────────────────────────
-function startDemoMode() {
-  document.getElementById('overlay').style.display = 'none';
-  document.getElementById('sidebar-user').style.display = 'flex';
-  document.getElementById('user-avatar').textContent = initials(currentUser.name);
-  document.getElementById('user-avatar').style.background = currentUser.color;
-  document.getElementById('user-name-display').textContent = currentUser.name;
-  document.getElementById('online-count').textContent = '1';
-  document.getElementById('online-count2').textContent = '1';
-
-  const container = document.getElementById('messages');
-  container.innerHTML = `
-    <div class="system-msg">حالت نمایش (Demo) — Firebase وصل نیست ✦</div>
-    <div class="system-msg" style="color:#f59e0b">برای فعال‌سازی واقعی، Firebase config رو در کد تنظیم کن</div>
-  `;
-
-  // Override sendMessage for demo
-  window.sendMessage = function() {
-    const input = document.getElementById('msg-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = ''; autoResize(input);
-    appendDemoMsg({ text, name: currentUser.name, uid: currentUser.id, color: currentUser.color, time: timeStr() });
-    setTimeout(() => appendDemoMsg({ text: 'این حالت دمو هست 🎮', name: 'DemonBot', uid: 'bot', color: '#7c3aed', time: timeStr() }), 800);
-  };
-}
-
-function appendDemoMsg(msg) {
-  const container = document.getElementById('messages');
-  const isMe = msg.uid === currentUser.id;
-  const grp = document.createElement('div');
-  grp.className = 'msg-group';
-  grp.innerHTML = `
-    <div class="msg-header">
-      <div class="msg-avatar" style="background:${msg.color}">${initials(msg.name)}</div>
-      <span class="msg-username${isMe?' is-me':''}">${escHtml(msg.name)}</span>
-      <span class="msg-time">${msg.time}</span>
-    </div>
-    <div class="msg-bubble${isMe?' is-me':''}">${escHtml(msg.text)}</div>
-  `;
-  container.appendChild(grp);
-  container.scrollTop = container.scrollHeight;
-}
-
-// Enter key on name input
-document.getElementById('name-input').addEventListener('keydown', e => { if (e.key === 'Enter') enterChat(); });
 </script>
+
 </body>
 </html>
