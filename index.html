@@ -1,59 +1,127 @@
-document.addEventListener('DOMContentLoaded', () => {
+<!doctype html>
+<html class="no-js" lang="fa" dir="rtl">
 
-  // ۱. سیستم مدیریت تب‌ها (جزوات / کلاس‌ها)
-  const tabButtons = document.querySelectorAll('.tab-btn');
-  const tabContents = document.querySelectorAll('.tab-content');
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>کلاس دیبون | مرجع نهایی زیست‌شناسی</title>
 
-  tabButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const targetTab = button.getAttribute('data-tab');
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/style.css">
 
-      // غیر فعال کردن دکمه‌های قبلی
-      tabButtons.forEach(btn => btn.classList.remove('active'));
-      // پنهان کردن محتواهای قبلی
-      tabContents.forEach(content => content.classList.remove('active'));
+  <meta name="description" content="سامانه لوکال دانلود جزوات و تماشای کلاس‌های آمادگی امتحان نهایی زیست‌شناسی">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+</head>
 
-      // فعال کردن تب کلیک شده
-      button.classList.add('active');
-      document.getElementById(targetTab).classList.add('active');
-    });
-  });
+<body>
 
-  // ۲. مدیریت پلیر ویدیوها و لیست فصل‌ها
-  const chapterLinks = document.querySelectorAll('.chapter-link');
-  const videoPlayer = document.getElementById('video-player');
-  const playingTitle = document.getElementById('playing-title');
+<div class="app-container">
+  <!-- هدر اصلی -->
+  <header class="main-header">
+    <h1 class="main-title">امتحان زیست 🧬</h1>
+    <p class="subtitle">مرکز دانلود منابع طلایی و تماشای کلاس‌های آمادگی امتحان نهایی استاد فرهمندنیا</p>
+  </header>
 
-  chapterLinks.forEach(link => {
-    link.addEventListener('click', () => {
-      // غیر فعال کردن فعال‌های قبلی در منو
-      chapterLinks.forEach(item => item.classList.remove('active'));
+  <!-- دکمه‌های سوییچ بین تب‌ها -->
+  <div class="tab-navigation">
+    <button class="tab-btn active" data-tab="downloads">📚 جزوه‌ها و منابع</button>
+    <button class="tab-btn" data-tab="classes">🎥 کلاس‌های فرهمند‌نیا</button>
+  </div>
 
-      // فعال کردن دکمه کلیک شده
-      link.classList.add('active');
+  <!-- محتوای اصلی -->
+  <main class="content-area">
 
-      // تغییر آدرس آی‌فریم به ویدیو جدید
-      const newVideoUrl = link.getAttribute('data-video');
-      videoPlayer.setAttribute('src', newVideoUrl);
+    <!-- تب اول: جزوه‌ها -->
+    <section id="downloads" class="tab-content active">
+      <h2 class="section-title">دانلود سریع جزوات شب امتحانی</h2>
+      <div class="download-cards">
 
-      // تغییر عنوان زیر ویدیو
-      playingTitle.textContent = `در حال پخش: ${link.textContent.trim().replace(/\s+/g, ' ')}`;
-    });
-  });
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>فرمول بیست</h3>
+          <p>راهنمای کلیدی برای کسب نمره کامل در امتحان</p>
+          <a href="./database/1.pdf" class="download-btn" download>دانلود PDF</a>
+        </div>
 
-  // ۳. افکت موقت دانلود دکمه‌ها
-  const downloadButtons = document.querySelectorAll('.download-btn');
-  downloadButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const originalText = button.textContent;
-      button.textContent = '⚡ شروع دانلود...';
-      button.style.backgroundColor = '#10b981';
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>زودپز زیست</h3>
+          <p>خلاصه فوق‌العاده سریع و جمع‌بندی ثانیه‌ای</p>
+          <a href="./database/2.pdf" class="download-btn" download>دانلود PDF</a>
+        </div>
 
-      setTimeout(() => {
-        button.textContent = originalText;
-        button.style.backgroundColor = '';
-      }, 2000);
-    });
-  });
+        <div class="card">
+          <div class="card-icon">📝</div>
+          <h3>دستنویس کتاب</h3>
+          <p>نکات دست‌نویس بسیار مهم حاشیه کتاب درسی</p>
+          <a href="./database/3.pdf" class="download-btn" download>دانلود PDF</a>
+        </div>
 
-});
+        <div class="card">
+          <div class="card-icon">🏦</div>
+          <h3>بانک نهایی</h3>
+          <p>مجموعه سوالات امتحانات نهایی سال‌های گذشته</p>
+          <a href="./database/4.pdf" class="download-btn" download>دانلود PDF</a>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- تب دوم: کلاس‌ها -->
+    <section id="classes" class="tab-content">
+      <h2 class="section-title">برنامه طرح درس و جلسات آموزشی</h2>
+
+      <div class="class-layout">
+        <!-- منوی سمت راست: لیست فصل‌ها -->
+        <aside class="chapters-sidebar">
+          <button class="chapter-link active" data-video="https://stream.biomaze.ir/89b41eg1q8bd/iframe">
+            <span class="badge">شروع</span> بخش ۰ (معرفی و طرح درس)
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/ufyurznxqvc7/iframe">
+            <span class="badge">فصل ۱</span> بخش ۱ / مولکول‌های اطلاعاتی
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/kf8cr2ualmtx/iframe">
+            <span class="badge">فصل ۲</span> بخش ۲ / جریان اطلاعات در یاخته
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/pko62qfmnkwq/iframe">
+            <span class="badge">فصل ۳</span> بخش ۳ / انتقال اطلاعات در نسل‌ها
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/87fotjspczm5/iframe">
+            <span class="badge">فصل ۴</span> بخش ۴ / تغییر در اطلاعات وراثتی
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/6dj6uxjtmysl/iframe">
+            <span class="badge">فصل ۵</span> بخش ۵ / ماده و انرژی
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/y45ls5zsb4bm/iframe">
+            <span class="badge">فصل ۶</span> بخش ۶ / از انرژی به ماده
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/7krzcit7gkvc/iframe">
+            <span class="badge">فصل ۷</span> بخش ۷ / فناوری‌های نوین زیستی
+          </button>
+          <button class="chapter-link" data-video="https://stream.biomaze.ir/m6kem8ywgfmm/iframe">
+            <span class="badge">فصل ۸</span> بخش ۸ / رفتارهای جانوران
+          </button>
+        </aside>
+
+        <!-- سمت چپ: پخش‌کننده ویدیو -->
+        <div class="video-player-container">
+          <div class="video-wrapper">
+            <!-- آی‌فریم پیش‌فرض روی بخش 0 تنظیم شده است -->
+            <iframe id="video-player" src="https://stream.biomaze.ir/89b41eg1q8bd/iframe" allowfullscreen></iframe>
+          </div>
+          <h4 id="playing-title" class="playing-title">در حال پخش: بخش ۰ (معرفی و طرح درس)</h4>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="main-footer">
+    <p>طراحی شده به صورت لوکال برای آمادگی نهایی ۱۴۰۵ 🎓</p>
+  </footer>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+
+</html>
