@@ -1,0 +1,49 @@
+/* ۱. تنظیم باکس‌سایزینگ برای محاسبه درست عرض و ارتفاع عناصر */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* ۲. صفر کردن مارجین و پدینگ پیش‌فرض همه عناصر */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* ۳. تنظیمات پایه‌ای برای بدنه صفحه */
+body {
+  min-height: 100vh; /* کل ارتفاع صفحه رو پوشش بده */
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background-color: #fcfcfc;
+  color: #333;
+}
+
+/* ۴. حذف استایل پیش‌فرض لیست‌ها */
+ol, ul {
+  list-style: none;
+}
+
+/* ۵. حذف خط زیر لینک‌ها و همرنگ کردنشون با متن پدر */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ۶. بهینه‌سازی نمایش تصاویر */
+img, picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* ۷. هماهنگ‌سازی فونت دکمه‌ها و اینپوت‌ها با فونت اصلی بدنه */
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* ۸. حذف حاشیه و خط دور فوکوس پیش‌فرض دکمه‌ها */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
