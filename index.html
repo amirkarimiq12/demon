@@ -1,357 +1,59 @@
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Demon Task — Telegram Mini App</title>
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<style>
-  :root {
-    --void:     #07070d;
-    --base:     #0f0f17;
-    --panel:    #13131f;
-    --card:     #1a1a28;
-    --border:   #252538;
-    --border2:  #2e2e48;
-    --violet:   #a855f7;
-    --violet-d: #7c3aed;
-    --violet-g: rgba(168,85,247,0.12);
-    --pink:     #ec4899;
-    --pink-g:   rgba(236,72,153,0.10);
-    --muted:    #6b7280;
-    --sub:      #9ca3af;
-    --main:     #f3f4f6;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Vazirmatn', sans-serif;
-    background-color: var(--void);
-    color: var(--main);
-    min-height: 100vh;
-    display: flex; flex-direction: column;
-    overflow-x: hidden;
-  }
-  header {
-    background: rgba(15,15,23,0.7);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 32px;
-    position: sticky; top: 0; z-index: 100;
-  }
-  .header-content { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-  .brand h1 { font-size: 20px; font-weight: 900; }
-  .brand h1 span { color: var(--violet); }
-  .global-progress { flex: 1; max-width: 480px; background: var(--panel); padding: 10px 16px; border-radius: 12px; border: 1px solid var(--border); }
-  .gp-meta { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--sub); margin-bottom: 6px; }
-  .gp-bar { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
-  .gp-fill { height: 100%; background: linear-gradient(90deg, var(--violet-d), var(--pink)); width: 0%; transition: width 0.4s ease; }
-  .layout { display: flex; flex: 1; max-width: 1400px; width: 100%; margin: 0 auto; padding: 32px; gap: 32px; }
-  aside { width: 280px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
-  .sidebar-header { display: flex; align-items: center; justify-content: space-between; padding: 0 8px 12px; border-bottom: 1px solid var(--border); }
-  .sidebar-header h2 { font-size: 13px; font-weight: 800; color: var(--sub); }
-  .subject-btn {
-    display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 14px 16px;
-    border-radius: 12px; background: transparent; border: 1px solid transparent; text-align: right;
-    color: var(--sub); cursor: pointer; transition: all 0.2s; font-family: inherit; font-size: 14px; font-weight: 700;
-  }
-  .subject-btn:hover { background: rgba(255,255,255,0.02); color: var(--main); }
-  .subject-btn.active { background: var(--panel); color: #fff; border-color: var(--border); box-shadow: inset 4px 0 0 var(--violet); }
-  .subject-btn .badge { font-family: 'JetBrains Mono', monospace; font-size: 11px; background: var(--void); padding: 2px 8px; border-radius: 20px; color: var(--violet); border: 1px solid var(--border); }
-  main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 24px; }
-  .view-header { display: flex; align-items: center; justify-content: space-between; }
-  .view-header h2 { font-size: 24px; font-weight: 900; color: #fff; }
-  .table-container { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
-  table { width: 100%; border-collapse: collapse; text-align: right; }
-  th { background: rgba(26,26,40,0.4); padding: 16px 20px; font-size: 13px; font-weight: 800; color: var(--sub); border-bottom: 1px solid var(--border); }
-  td { padding: 18px 20px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-  .ch-title { font-size: 15px; font-weight: 800; color: #fff; display: block; margin-bottom: 4px; }
-  .ch-note { font-size: 12px; color: var(--muted); cursor: pointer; display: block; }
-  .row-tasks-flex { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-  .task-pill { display: inline-flex; align-items: center; gap: 8px; background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
-  .task-check { width: 16px; height: 16px; border-radius: 4px; border: 2px solid var(--border2); display: flex; align-items: center; justify-content: center; }
-  .task-check svg { width: 10px; height: 10px; opacity: 0; transition: all 0.15s; }
-  .task-label { font-size: 12px; color: var(--sub); font-weight: 600; }
-  .task-pill.checked { background: var(--violet-g); border-color: rgba(168,85,247,0.3); }
-  .task-pill.checked .task-check { background: var(--violet); border-color: var(--violet); }
-  .task-pill.checked .task-check svg { opacity: 1; }
-  .task-pill.checked .task-label { color: #fff; }
-  .row-actions { display: flex; align-items: center; gap: 8px; }
-  .action-icon-btn { background: transparent; border: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: inline-flex; justify-content: center; }
-  .action-icon-btn:hover { color: #f87171; background: rgba(239,68,68,0.1); }
-  .action-icon-btn.add-col:hover { color: var(--violet); background: var(--violet-g); }
-  .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(4,4,8,0.8); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 1000; }
-  .modal-overlay.open { opacity: 1; pointer-events: auto; }
-  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; width: 100%; max-width: 460px; padding: 28px; }
-  .modal-h { font-size: 18px; font-weight: 900; color: #fff; margin-bottom: 8px; }
-  .modal-p { font-size: 13px; color: var(--sub); margin-bottom: 20px; }
-  .form-group { margin-bottom: 16px; }
-  .form-group label { display: block; font-size: 12px; color: var(--sub); margin-bottom: 6px; }
-  .input-text { width: 100%; background: var(--void); border: 1px solid var(--border); border-radius: 8px; color: #fff; padding: 12px 16px; font-family: inherit; outline: none; }
-  .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
-  .btn { font-family: inherit; font-size: 12px; font-weight: 700; padding: 10px 18px; border-radius: 8px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; }
-  .btn-primary { background: linear-gradient(135deg, var(--violet-d), var(--violet)); color: #fff; }
-  .btn-secondary { background: var(--card); color: var(--main); border: 1px solid var(--border); }
-  .empty { padding: 48px; text-align: center; color: var(--muted); }
-  #toastContainer { position: fixed; bottom: 24px; left: 24px; z-index: 1100; display: flex; flex-direction: column; gap: 8px; }
-  .toast { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--violet); border-radius: 8px; padding: 12px 20px; font-size: 13px; color: var(--main); display: flex; align-items: center; gap: 10px; }
-</style>
-</head>
-<body>
+document.addEventListener('DOMContentLoaded', () => {
 
-<header>
-  <div class="header-content">
-    <div class="brand">
-      <h1 id="userGreeting">🎯 Demon<span>Task</span></h1>
-    </div>
-    <div class="global-progress">
-      <div class="gp-meta"><span>پیشرفت کل اهداف شما</span><span id="globalProgressText">0%</span></div>
-      <div class="gp-bar"><div class="gp-fill" id="globalProgressFill"></div></div>
-    </div>
-  </div>
-</header>
+  // ۱. سیستم مدیریت تب‌ها (جزوات / کلاس‌ها)
+  const tabButtons = document.querySelectorAll('.tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
 
-<div class="layout">
-  <aside>
-    <div class="sidebar-header"><h2>لیست درس‌ها</h2></div>
-    <div id="subjectTabsContainer"></div>
-    <button class="btn btn-secondary" style="margin-top: 12px; justify-content: center;" onclick="openSubjectModal()">＋ مدیریت درس‌ها</button>
-  </aside>
+  tabButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const targetTab = button.getAttribute('data-tab');
 
-  <main>
-    <div class="view-header">
-      <h2 id="currentSubjectTitle">برنامه درس</h2>
-      <button class="btn btn-primary" onclick="openAddRowModal()">＋ افزودن مبحث جدید</button>
-    </div>
-    <div class="table-container">
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 35%;">مبحث</th>
-            <th style="width: 53%;">کارهای اختصاصی و وضعیت</th>
-            <th style="width: 12%; text-align: center;">عملیات</th>
-          </tr>
-        </thead>
-        <tbody id="tableBodyContainer"></tbody>
-      </table>
-      <div id="emptyState" class="empty" style="display: none;">هنوز هیچ مبحثی ثبت نکرده‌اید.</div>
-    </div>
-  </main>
-</div>
+      // غیر فعال کردن دکمه‌های قبلی
+      tabButtons.forEach(btn => btn.classList.remove('active'));
+      // پنهان کردن محتواهای قبلی
+      tabContents.forEach(content => content.classList.remove('active'));
 
-<div class="modal-overlay" id="addRowModal">
-  <div class="modal">
-    <div class="modal-h">ایجاد مبحث اختصاصی جدید</div>
-    <div class="form-group"><label>عنوان مبحث</label><input type="text" id="modalRowTitle" class="input-text" /></div>
-    <div class="form-group"><label>ستون‌ها (با کاما جدا کنید)</label><input type="text" id="modalRowCols" class="input-text" placeholder="فیلم، کتاب، تست" /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addRowModal')">لغو</button><button class="btn btn-primary" onclick="createNewRow()">ساخت</button></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="addColumnModal">
-  <div class="modal">
-    <div class="modal-h">افزودن کار جدید</div>
-    <div class="form-group"><label>عنوان کار</label><input type="text" id="modalSingleColName" class="input-text" /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addColumnModal')">لغو</button><button class="btn btn-primary" onclick="addSingleColumnToRow()">افزودن</button></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="noteModal">
-  <div class="modal">
-    <div class="modal-h">یادداشت مبحث</div>
-    <div class="form-group"><input type="text" id="modalNoteInput" class="input-text" /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('noteModal')">لغو</button><button class="btn btn-primary" onclick="saveRowNote()">ذخیره</button></div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="subjectModal">
-  <div class="modal">
-    <div class="modal-h">مدیریت لیست درس‌ها</div>
-    <div class="form-group"><input type="text" id="modalSubjectsList" class="input-text" /></div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('subjectModal')">لغو</button><button class="btn btn-primary" onclick="saveGlobalSubjects()">ذخیره</button></div>
-  </div>
-</div>
-
-<div id="toastContainer"></div>
-
-<script>
-// اتصال به وب‌اپ تلگرام
-const tg = window.Telegram.WebApp;
-tg.expand();
-
-// آدرس سرور بک‌اند شما (در ادامه تنظیمش می‌کنیم)
-const SERVER_URL = window.location.origin; 
-const telegramUser = tg.initDataUnsafe?.user;
-const userId = telegramUser ? telegramUser.id : "guest_user";
-
-if (telegramUser) {
-  document.getElementById('userGreeting').innerHTML = `🎯 دمون‌تسک <span>${telegramUser.first_name}</span>`;
-}
-
-let systemSubjects = ['زیست', 'فیزیک', 'شیمی', 'ریاضی', 'فارسی', 'عربی', 'انگلیسی', 'دینی', 'هویت', 'سلامت'];
-let state = { activeSubject: 'زیست', subjectsData: {} };
-let currentTargetRowId = null;
-
-// دریافت اطلاعات کاربر از سرور به محض باز شدن وب‌اپ
-async function loadUserData() {
-  try {
-    const res = await fetch(`${SERVER_URL}/api/get-data?userId=${userId}`);
-    const data = await res.json();
-    if (data && data.state) {
-      state = data.state;
-      if (data.systemSubjects) systemSubjects = data.systemSubjects;
-    } else {
-      initAppState();
-    }
-  } catch (e) {
-    initAppState();
-  }
-  render();
-}
-
-// ارسال هماهنگ اطلاعات به سرور پس از هر تغییر
-async function saveUserData() {
-  try {
-    await fetch(`${SERVER_URL}/api/save-data`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, state, systemSubjects })
-    });
-  } catch (e) {
-    console.error("خطا در ذخیره‌سازی ابری:", e);
-  }
-}
-
-function initAppState() {
-  systemSubjects.forEach(sub => {
-    if (!state.subjectsData[sub]) state.subjectsData[sub] = { rows: [] };
-  });
-}
-
-function render() {
-  initAppState();
-  renderSidebar();
-  renderTable();
-  calculateProgress();
-}
-
-function renderSidebar() {
-  const container = document.getElementById('subjectTabsContainer');
-  container.innerHTML = '';
-  systemSubjects.forEach(sub => {
-    const isActive = (state.activeSubject === sub);
-    const count = state.subjectsData[sub]?.rows?.length || 0;
-    const btn = document.createElement('button');
-    btn.className = `subject-btn ${isActive ? 'active' : ''}`;
-    btn.onclick = () => { state.activeSubject = sub; render(); saveUserData(); };
-    btn.innerHTML = `<span>${sub}</span><span class="badge">${count} ردیف</span>`;
-    container.appendChild(btn);
-  });
-}
-
-function renderTable() {
-  const tbody = document.getElementById('tableBodyContainer');
-  const emptyState = document.getElementById('emptyState');
-  tbody.innerHTML = '';
-  const subName = state.activeSubject;
-  document.getElementById('currentSubjectTitle').textContent = `برنامه درس ${subName}`;
-  const data = state.subjectsData[subName];
-
-  if (!data || data.rows.length === 0) {
-    emptyState.style.display = 'block';
-    return;
-  }
-  emptyState.style.display = 'none';
-
-  data.rows.forEach(row => {
-    const tr = document.createElement('tr');
-    let firstCellHTML = `<td><span class="ch-title">${escapeHTML(row.title)}</span><span class="ch-note" onclick="openNoteModal('${row.id}', '${escapeHTML(row.notes)}')">${row.notes ? '📝 ' + escapeHTML(row.notes) : '＋ ثبت یادداشت'}</span></td>`;
-    let secondCellHTML = `<td><div class="row-tasks-flex">`;
-    
-    row.columns.forEach(col => {
-      const isChecked = !!row.tasks[col];
-      secondCellHTML += `<div class="task-pill ${isChecked ? 'checked' : ''}" onclick="toggleTask('${row.id}', '${escapeHTML(col)}')"><div class="task-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg></div><span class="task-label">${escapeHTML(col)}</span></div>`;
-    });
-    
-    secondCellHTML += `</div></td>`;
-    let thirdCellHTML = `<td><div class="row-actions" style="justify-content: center;"><button class="action-icon-btn add-col" onclick="openAddColModal('${row.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button><button class="action-icon-btn" onclick="deleteRow('${row.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button></div></td>`;
-    tr.innerHTML = firstCellHTML + secondCellHTML + thirdCellHTML;
-    tbody.appendChild(tr);
-  });
-}
-
-function calculateProgress() {
-  let total = 0, checked = 0;
-  systemSubjects.forEach(sub => {
-    state.subjectsData[sub]?.rows?.forEach(row => {
-      row.columns.forEach(col => {
-        total++;
-        if (row.tasks && row.tasks[col]) checked++;
-      });
+      // فعال کردن تب کلیک شده
+      button.classList.add('active');
+      document.getElementById(targetTab).classList.add('active');
     });
   });
-  const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
-  document.getElementById('globalProgressText').textContent = pct + '%';
-  document.getElementById('globalProgressFill').style.width = pct + '%';
-}
 
-function createNewRow() {
-  const title = document.getElementById('modalRowTitle').value.trim();
-  const colsRaw = document.getElementById('modalRowCols').value.trim();
-  if (!title) return;
-  let columns = colsRaw ? colsRaw.split(/[،,]+/).map(c => c.trim()).filter(c => c.length > 0) : ['مطالعه', 'تست'];
-  const tasks = {}; columns.forEach(c => tasks[c] = false);
-  state.subjectsData[state.activeSubject].rows.push({ id: 'ch-' + Math.random().toString(36).slice(2, 11), title, columns, tasks, notes: '' });
-  closeModal('addRowModal');
-  render(); saveUserData();
-}
+  // ۲. مدیریت پلیر ویدیوها و لیست فصل‌ها
+  const chapterLinks = document.querySelectorAll('.chapter-link');
+  const videoPlayer = document.getElementById('video-player');
+  const playingTitle = document.getElementById('playing-title');
 
-function toggleTask(rowId, columnName) {
-  const row = state.subjectsData[state.activeSubject].rows.find(r => r.id === rowId);
-  if (row) {
-    row.tasks[columnName] = !row.tasks[columnName];
-    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium'); // افکت لرزش گوشی هنگام تیک زدن
-    render(); saveUserData();
-  }
-}
+  chapterLinks.forEach(link => {
+    link.addEventListener('click', () => {
+      // غیر فعال کردن فعال‌های قبلی در منو
+      chapterLinks.forEach(item => item.classList.remove('active'));
 
-function addSingleColumnToRow() {
-  const colName = document.getElementById('modalSingleColName').value.trim();
-  const row = state.subjectsData[state.activeSubject].rows.find(r => r.id === currentTargetRowId);
-  if (row && colName && !row.columns.includes(colName)) {
-    row.columns.push(colName);
-    row.tasks[colName] = false;
-    closeModal('addColumnModal');
-    render(); saveUserData();
-  }
-}
+      // فعال کردن دکمه کلیک شده
+      link.classList.add('active');
 
-function saveRowNote() {
-  const row = state.subjectsData[state.activeSubject].rows.find(r => r.id === currentTargetRowId);
-  if (row) { row.notes = document.getElementById('modalNoteInput').value.trim(); closeModal('noteModal'); render(); saveUserData(); }
-}
+      // تغییر آدرس آی‌فریم به ویدیو جدید
+      const newVideoUrl = link.getAttribute('data-video');
+      videoPlayer.setAttribute('src', newVideoUrl);
 
-function deleteRow(rowId) {
-  if (confirm('حذف شود؟')) { state.subjectsData[state.activeSubject].rows = state.subjectsData[state.activeSubject].rows.filter(r => r.id !== rowId); render(); saveUserData(); }
-}
+      // تغییر عنوان زیر ویدیو
+      playingTitle.textContent = `در حال پخش: ${link.textContent.trim().replace(/\s+/g, ' ')}`;
+    });
+  });
 
-function saveGlobalSubjects() {
-  const raw = document.getElementById('modalSubjectsList').value.trim();
-  if (raw) { systemSubjects = raw.split(/[،,]+/).map(s => s.trim()); render(); saveUserData(); closeModal('subjectModal'); }
-}
+  // ۳. افکت موقت دانلود دکمه‌ها
+  const downloadButtons = document.querySelectorAll('.download-btn');
+  downloadButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const originalText = button.textContent;
+      button.textContent = '⚡ شروع دانلود...';
+      button.style.backgroundColor = '#10b981';
 
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openAddRowModal() { openModal('addRowModal'); }
-function openAddColModal(rowId) { currentTargetRowId = rowId; openModal('addColumnModal'); }
-function openNoteModal(rowId, currentNote) { currentTargetRowId = rowId; document.getElementById('modalNoteInput').value = currentNote==='undefined'?'':currentNote; openModal('noteModal'); }
-function openSubjectModal() { document.getElementById('modalSubjectsList').value = systemSubjects.join('، '); openModal('subjectModal'); }
-function escapeHTML(str) { return String(str || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.backgroundColor = '';
+      }, 2000);
+    });
+  });
 
-// لود اولیه برنامه از سرور تلگرام
-loadUserData();
-</script>
-</body>
-</html>
+});
